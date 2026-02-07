@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>OPUS: Towards Efficient and Principled Data Selection in Large Language Model Pre-training in <em>Every</em> Iteration</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="./css/vendors/aos.css" rel="stylesheet">
+    <link href="./style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+</head>
+
+<body class="font-inter antialiased bg-white text-gray-900 tracking-tight">
+
+    <div class="flex flex-col min-h-screen overflow-hidden supports-[overflow:clip]:overflow-clip">
+
+        <header class="fixed w-full z-30 md:bg-opacity-90 transition duration-300 ease-in-out" x-data="handleHeader" @scroll.window="isTop" :class="{ 'bg-white backdrop-blur-sm shadow-lg' : !top }">
+            <script>
+                document.addEventListener('alpine:init', () => {
+                    Alpine.data('handleHeader', () => ({
+                        top: true,
+                        isTop() {
+                            this.top = window.pageYOffset < 10
+                        },
+                        init() {
+                            this.isTop()
+                        }
+                    }))
+                })
+            </script>
+            <div class="max-w-6xl mx-auto px-5 sm:px-6">
+                <div class="flex items-center justify-between h-16 md:h-20">
+                    <div class="shrink-0 mr-4">
+                        <a class="block" href="index.html" aria-label="OPUS">
+                            <svg class="w-8 h-8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <radialGradient cx="21.152%" cy="86.063%" fx="21.152%" fy="86.063%" r="79.941%" id="header-logo">
+                                        <stop stop-color="#4FD1C5" offset="0%" />
+                                        <stop stop-color="#81E6D9" offset="25.871%" />
+                                        <stop stop-color="#338CF5" offset="100%" />
+                                    </radialGradient>
+                                </defs>
+                                <rect width="32" height="32" rx="16" fill="url(#header-logo)" fill-rule="nonzero" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    <nav class="hidden md:flex md:grow">
+                        <ul class="flex grow justify-end flex-wrap items-center">
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#abstract" onclick="document.querySelector('#abstract').scrollIntoView({behavior: 'smooth'})">Abstract</a>
+                            </li>
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#method" onclick="document.querySelector('#method').scrollIntoView({behavior: 'smooth'})">Method</a>
+                            </li>
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#algorithm" onclick="document.querySelector('#algorithm').scrollIntoView({behavior: 'smooth'})">Algorithm</a>
+                            </li>
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#results" onclick="document.querySelector('#results').scrollIntoView({behavior: 'smooth'})">Results</a>
+                            </li>
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#acknowledgements" onclick="document.querySelector('#acknowledgements').scrollIntoView({behavior: 'smooth'})">Acknowledgements</a>
+                            </li>
+                            <li>
+                                <a class="text-gray-600 hover:text-gray-900 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out text-lg" href="#bibtex" onclick="document.querySelector('#bibtex').scrollIntoView({behavior: 'smooth'})">BibTeX</a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="flex md:hidden" x-data="{ expanded: false }">
+                        <button
+                            class="hamburger"
+                            :class="{ 'active': expanded }"
+                            @click.stop="expanded = !expanded"
+                            aria-controls="mobile-nav"
+                            :aria-expanded="expanded"
+                        >
+                            <span class="sr-only">Menu</span>
+                            <svg class="w-6 h-6 fill-current text-gray-900" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <rect y="4" width="24" height="2" />
+                                <rect y="11" width="24" height="2" />
+                                <rect y="18" width="24" height="2" />
+                            </svg>
+                        </button>
+
+                        <nav
+                            id="mobile-nav"
+                            class="absolute top-full h-screen pb-16 z-20 left-0 w-full overflow-scroll bg-white"
+                            @click.outside="expanded = false"
+                            @keydown.escape.window="expanded = false"
+                            x-show="expanded"
+                            x-transition:enter="transition ease-out duration-200 transform"
+                            x-transition:enter-start="opacity-0 -translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-out duration-200"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            x-cloak
+                        >
+                            <ul class="px-5 py-2">
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#abstract" onclick="document.querySelector('#abstract').scrollIntoView({behavior: 'smooth'})">Abstract</a>
+                                </li>
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#method" onclick="document.querySelector('#method').scrollIntoView({behavior: 'smooth'})">Method</a>
+                                </li>
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#algorithm" onclick="document.querySelector('#algorithm').scrollIntoView({behavior: 'smooth'})">Algorithm</a>
+                                </li>
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#results" onclick="document.querySelector('#results').scrollIntoView({behavior: 'smooth'})">Results</a>
+                                </li>
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#acknowledgements" onclick="document.querySelector('#acknowledgements').scrollIntoView({behavior: 'smooth'})">Acknowledgements</a>
+                                </li>
+                                <li>
+                                    <a class="flex text-gray-600 hover:text-gray-900 py-2 text-lg" href="#bibtex" onclick="document.querySelector('#bibtex').scrollIntoView({behavior: 'smooth'})">BibTeX</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <main class="grow">
+
+            <section class="relative">
+                <div class="absolute left-1/2 transform -translate-x-1/2 bottom-0 pointer-events-none -z-1" aria-hidden="true">
+                    <svg width="1360" height="578" viewBox="0 0 1360 578" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="illustration-01">
+                                <stop stop-color="#FFF" offset="0%" />
+                                <stop stop-color="#EAEAEA" offset="77.402%" />
+                                <stop stop-color="#DFDFDF" offset="100%" />
+                            </linearGradient>
+                        </defs>
+                        <g fill="url(#illustration-01)" fill-rule="evenodd">
+                            <circle cx="1232" cy="128" r="128" />
+                            <circle cx="155" cy="443" r="64" />
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="max-w-screen-xl mx-auto px-4 sm:px-6">
+                    <div class="pt-20 pb-4 md:pt-20 md:pb-6">
+                        <div class="text-center pb-4 md:pb-6 max-w-none">
+                            <div class="mb-4" data-aos="zoom-y-out">
+                                <div class="flex justify-center mb-4">
+                                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-black text-white font-extrabold text-xl shadow-lg">OPUS</div>
+                                </div>
+                                <h1 class="font-extrabold leading-tight tracking-tighter opus-title" style="font-size: 3.2rem; line-height: 1.1;">
+                                    OPUS: Towards Efficient and Principled Data Selection in Large Language Model Pre-training in <em>Every</em> Iteration
+                                </h1>
+                                                            </div>
+                            <div class="max-w-5xl mx-auto">
+                                
+                                <div class="opus-authors" data-aos="zoom-y-out" data-aos-delay="150">
+                                    <div class="opus-authors-row">
+                                        <span class="opus-author">Shaobo Wang<sup>1,2*</sup></span>
+                                        <span class="opus-author">Xuan Ouyang<sup>1,3*</sup></span>
+                                        <span class="opus-author">Tianyi Xu<sup>1,3*</sup></span>
+                                        <span class="opus-author">Yuzheng Hu<sup>4</sup></span>
+                                        <span class="opus-author">Jialin Liu<sup>1</sup></span>
+                                        <span class="opus-author">Guo Chen<sup>1</sup></span>
+                                    </div>
+                                    <div class="opus-authors-row">
+                                        <span class="opus-author">Tianyu Zhang<sup>5</sup></span>
+                                        <span class="opus-author">Junhao Zheng<sup>2</sup></span>
+                                        <span class="opus-author">Kexin Yang<sup>2</sup></span>
+                                        <span class="opus-author">Xingzhang Ren<sup>2</sup><span class="opus-mail">&#x2709;</span></span>
+                                        <span class="opus-author">Dayiheng Liu<sup>2</sup><span class="opus-mail">&#x2709;</span></span>
+                                        <span class="opus-author">Linfeng Zhang<sup>1</sup><span class="opus-mail">&#x2709;</span></span>
+                                    </div>
+                                </div>
+                                <div class="opus-affils">
+                                    <div class="opus-affil-row">
+                                        <span><sup>1</sup>EPIC Lab, SJTU</span>
+                                        <img src="./images/logos/SJTU.png" alt="SJTU">
+                                        <span><sup>2</sup>Qwen Team, Alibaba Group</span>
+                                        <img src="./images/logos/qwen.png" alt="Qwen Team">
+                                        <span><sup>3</sup>UW&ndash;Madison</span>
+                                        <img src="./images/logos/uw.png" alt="UW-Madison">
+                                    </div>
+                                    <div class="opus-affil-row">
+                                        <span><sup>4</sup>UIUC</span>
+                                        <img src="./images/logos/UIUC.png" alt="UIUC">
+                                        <span><sup>5</sup>Mila - Quebec AI Institute</span>
+                                        <img src="./images/logos/Mila.png" alt="Mila">
+                                        <span class="opus-note"><sup>*</sup>Equal Contribution</span>
+                                        <span class="opus-note"><span class="opus-mail">&#x2709;</span>Corresponding Authors</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap justify-center gap-4 md:gap-6" data-aos="zoom-y-out" data-aos-delay="300">
+                                    <a class="btn text-white px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl" style="background-color: #0645ad;" onmouseover="this.style.backgroundColor='#0538a0'" onmouseout="this.style.backgroundColor='#0645ad'" href="https://arxiv.org/pdf/2602.05400" target="_blank">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span>Paper</span>
+                                    </a>
+                                    <a class="btn text-white px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl" style="background-color: #0645ad;" onmouseover="this.style.backgroundColor='#0538a0'" onmouseout="this.style.backgroundColor='#0645ad'" href="https://github.com/yancyou/Muon-Pretrain.git" target="_blank">
+                                        <i class="fab fa-github"></i>
+                                        <span>Code</span>
+                                    </a>
+                                </div>
+
+                                <div class="max-w-4xl mx-auto">
+                                    <img src="./images/fig1.png" alt="OPUS pipeline" class="w-full h-auto rounded-xl shadow-md" loading="lazy" />
+                                    <p class="text-center text-gray-600 mt-4">Left: Comparison of different data selection methods. Right: OPUS outperforms random
+                                        selection by an average of 2.2% accuracy across 10 downstream benchmarks and achieves 8x reduction in computation on GPT-XL using FineWeb dataset.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section class="relative" id="abstract">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="pt-2 md:pt-4">
+                        <div class="max-w-5xl mx-auto pb-12 md:pb-16">
+                            <h1 class="h2 mb-4 text-center">Abstract</h1>
+                            <p class="text-xl text-gray-600">
+                                As high-quality public text approaches exhaustion (the data wall), pre-training must shift from using more tokens to using better tokens. Existing data selection methods either rely on static heuristics that ignore training dynamics, or use dynamic but optimizer-agnostic criteria based on raw gradients. We propose OPUS (Optimizer-induced Projected Utility Selection), a dynamic data selection framework that defines utility in the optimizer-induced update space. OPUS scores candidates by projecting their effective updates&mdash;shaped by modern optimizers&mdash;onto a target direction derived from a stable, in-distribution proxy. To ensure scalability, we employ a Ghost technique with CountSketch for computational efficiency, and Boltzmann sampling for data diversity, incurring only 4.7% additional compute overhead. OPUS delivers strong gains across corpora, quality tiers, optimizers, and model scales. In GPT-2 Large/XL pre-training on FineWeb and FineWeb-Edu with 30B tokens, OPUS outperforms industrial baselines and even full 200B-token training. In continued pre-training of Qwen3-8B-Base on SciencePedia, OPUS achieves superior performance using only 0.5B tokens compared to full training with 3B tokens.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="relative" id="method">
+                <div class="absolute inset-0 bg-gray-100 pointer-events-none" aria-hidden="true"></div>
+                <div class="relative max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="pt-12 md:pt-20 pb-12 md:pb-20">
+                        <div class="max-w-5xl mx-auto pb-10 md:pb-14">
+                            <h1 class="h2 mb-4 text-center">Method Overview</h1>
+                            <div class="text-xl text-gray-600">
+                                <p class="mb-4"><strong>1.</strong> <strong>Utility in the optimizer-induced update space:</strong> OPUS measures data utility by the expected one-step improvement on a high-quality proxy set, under the actual optimizer geometry (e.g., AdamW/Muon), aligning scoring with the true training trajectory.</p>
+                                <p class="mb-4"><strong>2.</strong> <strong>Projection-based scoring:</strong> Each candidate's effective update is projected onto a target descent direction from the proxy set, removing the mismatch that arises when Adam/Muon training is treated as SGD.</p>
+                                <p class="mb-4"><strong>3.</strong> <strong>Scalable estimation + diversity:</strong> We approximate utilities via lightweight projections (Ghost + CountSketch) and sample with a Boltzmann distribution to balance exploitation and diversity while keeping overhead low.</p>
+                            </div>
+
+                            <div class="max-w-4xl mx-auto">
+                                <img src="./images/pipeline.png" alt="OPUS pipeline" class="opus-pipeline w-full h-auto rounded-xl shadow-md" loading="lazy" />
+                                <p class="text-center text-gray-600 mt-4">OPUS pipeline: optimizer-induced utility estimation with scalable projection and sampling.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="algorithm">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="py-12 md:py-20">
+                        <div class="max-w-4xl mx-auto">
+                            <h1 class="h2 mb-6 text-center">Algorithm</h1>
+                            <img src="./images/algo.png" alt="OPUS Algorithm: Optimizer-induced Projected Utility Selection" class="w-full h-auto rounded-xl shadow-md" loading="lazy" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="results">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="py-12 md:py-20">
+                        <div class="max-w-4xl mx-auto text-center pb-10 md:pb-14">
+                            <h2 class="h2">Results</h2>
+                            <p class="text-xl text-gray-600 mt-3">OPUS delivers consistent gains across model scales, optimizers, corpora, and continued pre-training settings.</p>
+                        </div>
+
+                        <div class="grid gap-10">
+
+                            <!-- 1. Main Pre-training Results on FineWeb -->
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                                <h3 class="text-xl font-semibold mb-2">Pre-training Results on FineWeb</h3>
+                                <p class="text-gray-600 mb-4">Evaluation across GPT-2 Large and XL with Muon and AdamW optimizers on 30B update tokens. OPUS achieves the best average accuracy across 10 downstream benchmarks in all four configurations, outperforming both static filtering and dynamic selection baselines.</p>
+                                <img src="./images/fineweb.png" alt="FineWeb benchmark results" class="w-full h-auto rounded-lg shadow-md" loading="lazy" />
+                            </div>
+
+                            <!-- 2. Validation Loss + Efficiency (2 columns) -->
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col">
+                                    <h3 class="text-xl font-semibold mb-2">Validation Loss Curves</h3>
+                                    <p class="text-gray-600 mb-4">OPUS converges faster and reaches lower validation loss than all baselines. On GPT-2 XL, it matches the 60B-token random baseline using only 17B tokens.</p>
+                                    <img src="./images/loss.png" alt="Validation loss curves" class="w-full h-auto rounded-lg shadow-md mt-auto" loading="lazy" />
+                                </div>
+                                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col">
+                                    <h3 class="text-xl font-semibold mb-2">Efficiency &amp; Computational Cost</h3>
+                                    <p class="text-gray-600 mb-4">OPUS incurs only 4.7% extra compute overhead vs. random sampling while achieving the best performance-compute tradeoff among all methods.</p>
+                                    <img src="./images/efficiency.png" alt="Efficiency analysis" class="w-full h-auto rounded-lg shadow-md mt-auto" loading="lazy" />
+                                </div>
+                            </div>
+
+                            <!-- 3. Domain-Specific Perplexity -->
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                                <h3 class="text-xl font-semibold mb-2">Domain-Specific Perplexity</h3>
+                                <p class="text-gray-600 mb-4">Perplexity (lower is better) across 10 domains after 30B update tokens on FineWeb and FineWeb-Edu. OPUS achieves the lowest average perplexity in all settings, demonstrating superior cross-domain knowledge compression without domain collapse.</p>
+                                <img src="./images/domain_ppl.png" alt="Domain perplexity results" class="w-full h-auto rounded-lg shadow-md" loading="lazy" />
+                            </div>
+
+                            <!-- 4. Continued Pre-training -->
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                                <h3 class="text-xl font-semibold mb-2">Continued Pre-training on SciencePedia</h3>
+                                <p class="text-gray-600 mb-4">CPT of Qwen3-8B-Base on SciencePedia. OPUS reaches full-data (3B tokens) performance using only 0.5B tokens &mdash; a 6&times; data efficiency gain. Domain-level results on OlympicArena and SciAssess confirm consistent improvements across all scientific domains and token budgets.</p>
+                                <div class="flex flex-col md:flex-row gap-6 items-center">
+                                    <div style="flex: 0 0 38%;">
+                                        <img src="./images/cpt.png" alt="CPT performance vs tokens" class="w-full h-auto rounded-lg shadow-md" loading="lazy" />
+                                    </div>
+                                    <div style="flex: 0 0 58%;">
+                                        <img src="./images/cpt_results.png" alt="CPT domain breakdown" class="w-full h-auto rounded-lg shadow-md" loading="lazy" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. Ablation Study -->
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                                <h3 class="text-xl font-semibold mb-2">Ablation Study</h3>
+                                <p class="text-gray-600 mb-4">Impact of sampling strategy and validation proxy. Boltzmann sampling and benchmark-matched proxy each contribute to OPUS's gains; combining both yields the best average accuracy (41.75).</p>
+                                <div class="max-w-2xl mx-auto">
+                                    <img src="./images/ablation.png" alt="Ablation study" class="w-full h-auto rounded-lg shadow-md" loading="lazy" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="acknowledgements">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="py-12 md:py-20">
+                        <div class="max-w-5xl mx-auto">
+                            <h1 class="h2 mb-4 text-center">Acknowledgements</h1>
+                            <p class="text-xl text-gray-600 text-center">We thank Jiachen T. Wang at Princeton University and Meng Ding at University at Buffalo for helpful feedback and discussions.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="bibtex">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                    <div class="py-12 md:py-20">
+                        <div class="max-w-3xl mx-auto text-center pb-12 md:pb-16">
+                            <h1 class="h2 mb-4">BibTeX</h1>
+                        </div>
+                        <div class="max-w-4xl mx-auto">
+                            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                                <pre class="text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto font-mono leading-relaxed"><code>@misc{wang2026opusefficientprincipleddata,
+      title={OPUS: Towards Efficient and Principled Data Selection in Large Language Model Pre-training in Every Iteration}, 
+      author={Shaobo Wang and Xuan Ouyang and Tianyi Xu and Yuzheng Hu and Jialin Liu and Guo Chen and Tianyu Zhang and Junhao Zheng and Kexin Yang and Xingzhang Ren and Dayiheng Liu and Linfeng Zhang},
+      year={2026},
+      eprint={2602.05400},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2602.05400}, 
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                <div class="md:flex md:items-center md:justify-between py-4 md:py-8 border-t border-gray-200">
+                    <div class="text-sm text-gray-600 mr-4">&copy; 2026 OPUS Project. All rights reserved.</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="./js/vendors/alpinejs.min.js" defer></script>
+    <script src="./js/vendors/aos.js"></script>
+    <script src="./js/main.js"></script>
+
+</body>
+
+</html>
